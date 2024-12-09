@@ -18,7 +18,7 @@ class AuthController extends Controller
 
         // التحقق من المدخلات
         $validator = Validator::make($fields, [
-            'email' => 'required|email',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|max:81', // استخدام "min" بدلاً من "main"
         ]);
 
@@ -38,7 +38,7 @@ class AuthController extends Controller
         NewUserCreated::dispatch($user);
 
         // رد النجاح
-        return response()->json(['message' => 'User Created'], 200);
+        return response()->json(['user'=>$user,'message' => 'User Created'], 200);
     }
 
     // دالة لتوليد رمز عشوائي
