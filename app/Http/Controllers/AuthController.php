@@ -32,7 +32,7 @@ class AuthController extends Controller
         $user=User::create([
             'email' => $fields['email'],
             'password' => bcrypt($fields['password']),
-            'isValidEmail' => User::IS_VALID_EMAIL,
+            'isValidEmail' => User::IS_INVALID_EMAIL,
             'remember_token' => $this->generateRandomCode(),
         ]);
         NewUserCreated::dispatch($user);
@@ -46,4 +46,12 @@ class AuthController extends Controller
     {
         return Str::random(10) . time();
     }
+
+    public function checkEmail($token){
+        User::where('remember_token', $token)
+            ->update(['isValidEmail' => User::IS_VALID_EMAIL]);
+        return redirect()('/login');
+    }
+
+
 }
