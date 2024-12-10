@@ -13,7 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
     const IS_VALID_EMAIL =1;
 
-    const IS_INVALID_EMAL =0;
+    const IS_INVALID_EMAIL =0;
 
 
     /**
