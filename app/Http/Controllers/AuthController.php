@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    private $secretKey = "qQKPjndxljuYQi/POiXJa8O19nVO/vTf/DpXO541g=qQKPjndxljuYQi/POiXJa8O19nVO/vTf/DpXO541g=";
+
     public function register(Request $request)
     {
         // الحصول على المدخلات
@@ -71,19 +73,22 @@ class AuthController extends Controller
 
         if (!is_null($user)) {
 
-            if (intval($user->isValidEmail) !== User::IS_VALID_EMAIL) {
+            if ((int) $user->isValidEmail !== User::IS_VALID_EMAIL) {
+                // إطلاق الحدث لإرسال بريد التحقق
                 NewUserCreated::dispatch($user);
-                return response([
-                    'message' => 'We send you an email verification !',
-                    'isLoggedIn' => false
-                ],422);
+
+                // إعادة الاستجابة
+                return response()->json([
+                    'message' => 'We sent you an email verification!',
+                    'isLoggedIn' => false,
+                ], 422);
             }
+
         }
 
         if (!$user || !Hash::check($fields['password'], $user->password)) {
 
-            return response(['message' => 'email or password invalid',
-                'isLoggedIn' => false], 422);
+            return response(['message' => 'email or password invalid'],422);
         }
 
 
