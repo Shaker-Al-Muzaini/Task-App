@@ -11,7 +11,12 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    private $secretKey = "qQKPjndxljuYQi/POiXJa8O19nVO/vTf/DpXO541g=qQKPjndxljuYQi/POiXJa8O19nVO/vTf/DpXO541g=";
+    private $secretKey;
+
+    public function __construct()
+    {
+        $this->secretKey = env('SECRET_KEY');
+    }
 
     public function register(Request $request)
     {
