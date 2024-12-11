@@ -53,5 +53,52 @@ class AuthController extends Controller
         return redirect()('/login');
     }
 
+    public function login(Request $request)
+    {
+
+        $fields = $request->all();
+
+        $errors = Validator::make($fields, [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if ($errors->fails()) {
+            return response($errors->errors()->all(), 422);
+        }
+
+        $user = User::where('email', $fields['email'])->first();
+
+        if (!is_null($user)) {
+
+            if (intval($user->isValidEmail) !== User::IS_VALID_EMAIL) {
+                NewUserCreated::dispatch($user);
+                return response([
+                    'message' => 'We send you an email verification !',
+                    'isLoggedIn' => false
+                ],422);
+            }
+        }
+
+        if (!$user || !Hash::check($fields['password'], $user->password)) {
+
+            return response(['message' => 'email or password invalid',
+                'isLoggedIn' => false], 422);
+        }
+
+
+        $token = $user->createToken($this->secretKey)->plainTextToken;
+        return response(
+            [
+                'user' => $user,
+                'message' => 'loggedin',
+                'token' => $token,
+                'isLoggedIn' => true
+
+            ],
+            200
+        );
+    }
+
 
 }
