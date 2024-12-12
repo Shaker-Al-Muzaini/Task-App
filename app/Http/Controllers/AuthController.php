@@ -13,7 +13,7 @@ class AuthController extends Controller
 {
     private $secretKey;
 
-    public function __construct()
+    public function __construct() 
     {
         $this->secretKey = env('SECRET_KEY');
     }
