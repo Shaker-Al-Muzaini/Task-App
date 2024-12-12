@@ -15,7 +15,7 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->secretKey = env('SECRET_KEY');
+        $this->secretKey = env('SECRET_KEY'); 
     }
 
     public function register(Request $request)
