@@ -44,11 +44,11 @@ class AuthController extends Controller
         ]);
         NewUserCreated::dispatch($user);
 
-        // رد النجاح
+
         return response()->json(['user'=>$user,'message' => 'User Created'], 200);
     }
 
-    // دالة لتوليد رمز عشوائي
+
     private function generateRandomCode()
     {
         return Str::random(10) . time();
