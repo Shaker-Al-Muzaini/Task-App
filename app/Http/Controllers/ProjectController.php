@@ -28,7 +28,6 @@ class ProjectController extends Controller
             return response()->json(['errors' => $e->errors()], 422);
         }
 
-        // بدء المعاملة
         DB::beginTransaction();
 
         try {
@@ -39,7 +38,6 @@ class ProjectController extends Controller
                 'endDate' => $validatedData['endDate'],
                 'slug' => Project::createSlug($validatedData['name']),
             ]);
-
             DB::commit();
 
             // تحويل المشروع إلى مصفوفة باستخدام Resource
