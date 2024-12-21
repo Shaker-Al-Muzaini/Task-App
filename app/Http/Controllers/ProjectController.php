@@ -40,7 +40,6 @@ class ProjectController extends Controller
             ]);
             DB::commit();
 
-            // تحويل المشروع إلى مصفوفة باستخدام Resource
             $projectData = (new ProjectResource($project))->toArray($request);
 
             return response()->json(
@@ -56,4 +55,48 @@ class ProjectController extends Controller
             );
         }
     }
+
+    public function update(Request $request,$id): JsonResponse
+    {
+        try {
+            $validatedData = $request->validate([
+                'id'=>'required',
+                'name' => 'required',
+                'startDate' => 'required',
+                'endDate' => 'required',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $project = Project::findOrFail($id);
+
+            $project->update([
+                'name' => $validatedData['name'],
+                'startDate' => $validatedData['startDate'],
+                'endDate' => $validatedData['endDate'],
+                'slug' => Project::createSlug($validatedData['name']),
+            ]);
+            DB::commit();
+
+            $projectData = (new ProjectResource($project))->toArray($request);
+
+            return response()->json(
+                array_merge(['message' => 'تم تعديل المشروع بنجاح!'], $projectData),
+                201
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json(
+                ['message' => 'حدث خطأ أثناء تعديل المشروع.', 'error' => $e->getMessage()],
+                500
+            );
+        }
+    }
+
+
 }
