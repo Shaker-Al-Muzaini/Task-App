@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TaskProgress;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Http\Resources\ProjectResource;
@@ -16,6 +17,13 @@ class ProjectController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+
+    public function index(Request $request)
+    {
+        $projects=Project::with(['task_progress'])->paginate(6);
+        return response()->json($projects,200);
+
+    }
     public function store(Request $request): JsonResponse
     {
         try {
@@ -37,6 +45,12 @@ class ProjectController extends Controller
                 'startDate' => $validatedData['startDate'],
                 'endDate' => $validatedData['endDate'],
                 'slug' => Project::createSlug($validatedData['name']),
+            ]);
+            TaskProgress::create([
+                'projectId' => $project->id,
+                'pinned_on_dashboard' => TaskProgress::NOT_PINNED_ON_DASHBOARD,
+                'progress' => TaskProgress::INITAL_PROJECT_PERCENT,
+
             ]);
             DB::commit();
 

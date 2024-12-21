@@ -30,4 +30,8 @@ class Project extends Model
         $code = Str::random(10) . time();
         return Str::slug($name) . '-' . $code;
     }
+
+    public function task_progress(){
+     return   $this->hasOne(TaskProgress::class,'projectId','id');
+    }
 }
