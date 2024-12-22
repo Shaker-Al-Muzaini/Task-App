@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TaskProgress;
 use App\Services\ProjectService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -88,4 +89,20 @@ class ProjectController extends Controller
             ], 500);
         }
     }
+    public function pinnedProject(Request $request)
+    {
+        $validatedData = $request->validate([
+            'projectId' => 'required|numeric|exists:projects,id',
+        ]);
+
+        TaskProgress::where('projectId', $request->projectId)
+            ->update(['pinned_on_dashboard' => TaskProgress::PINNED_ON_DASHBOARD]);
+
+        // إرجاع رسالة نجاح
+        return response()->json(['message' => 'تم تثبيت المشروع على لوحة التحكم بنجاح!']);
+    }
+
+
+
+
 }
