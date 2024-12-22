@@ -2,115 +2,90 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TaskProgress;
+use App\Services\ProjectService;
 use Illuminate\Http\Request;
-use App\Models\Project;
-use App\Http\Resources\ProjectResource;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
+use App\Http\Resources\ProjectResource;
 
 class ProjectController extends Controller
 {
-    /**
+    protected ProjectService $projectService;
 
+    public function __construct(ProjectService $projectService)
+    {
+        $this->projectService = $projectService;
+    }
+
+    /**
+     * Get a list of projects with optional query filters.
+     *
      * @param Request $request
      * @return JsonResponse
      */
-
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $projects=Project::with(['task_progress'])->paginate(6);
-        return response()->json($projects,200);
+        $projects = $this->projectService->getProjects($request);
 
+        $projectsData = ProjectResource::collection($projects);
+
+
+        return response()->json(['projects' => $projectsData], 200);
     }
+
+    /**
+     * Store a new project.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function store(Request $request): JsonResponse
     {
-        try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'startDate' => 'required|date',
-                'endDate' => 'required|date|after_or_equal:startDate',
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
-
-        DB::beginTransaction();
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date|after_or_equal:startDate',
+        ]);
 
         try {
-            $project = Project::create([
-                'name' => $validatedData['name'],
-                'status' => Project::NOT_STARTED,
-                'startDate' => $validatedData['startDate'],
-                'endDate' => $validatedData['endDate'],
-                'slug' => Project::createSlug($validatedData['name']),
-            ]);
-            TaskProgress::create([
-                'projectId' => $project->id,
-                'pinned_on_dashboard' => TaskProgress::NOT_PINNED_ON_DASHBOARD,
-                'progress' => TaskProgress::INITAL_PROJECT_PERCENT,
-
-            ]);
-            DB::commit();
-
-            $projectData = (new ProjectResource($project))->toArray($request);
-
-            return response()->json(
-                array_merge(['message' => 'تم إنشاء المشروع بنجاح!'], $projectData),
-                201
-            );
+            $project = $this->projectService->createProject($validatedData);
+            return response()->json([
+                'message' => 'تم إنشاء المشروع بنجاح!',
+                'data' => new ProjectResource($project),
+            ], 201);
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json(
-                ['message' => 'حدث خطأ أثناء إنشاء المشروع.', 'error' => $e->getMessage()],
-                500
-            );
+            return response()->json([
+                'message' => 'حدث خطأ أثناء إنشاء المشروع.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
-    public function update(Request $request,$id): JsonResponse
+    /**
+     * Update an existing project.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(Request $request, $id): JsonResponse
     {
-        try {
-            $validatedData = $request->validate([
-                'id'=>'required',
-                'name' => 'required',
-                'startDate' => 'required',
-                'endDate' => 'required',
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
-
-        DB::beginTransaction();
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date|after_or_equal:startDate',
+        ]);
 
         try {
-            $project = Project::findOrFail($id);
-
-            $project->update([
-                'name' => $validatedData['name'],
-                'startDate' => $validatedData['startDate'],
-                'endDate' => $validatedData['endDate'],
-                'slug' => Project::createSlug($validatedData['name']),
-            ]);
-            DB::commit();
-
-            $projectData = (new ProjectResource($project))->toArray($request);
-
-            return response()->json(
-                array_merge(['message' => 'تم تعديل المشروع بنجاح!'], $projectData),
-                201
-            );
+            $project = $this->projectService->updateProject($id, $validatedData);
+            return response()->json([
+                'message' => 'تم تعديل المشروع بنجاح!',
+                'data' => new ProjectResource($project),
+            ], 200);
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json(
-                ['message' => 'حدث خطأ أثناء تعديل المشروع.', 'error' => $e->getMessage()],
-                500
-            );
+            return response()->json([
+                'message' => 'حدث خطأ أثناء تعديل المشروع.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
-
-
 }

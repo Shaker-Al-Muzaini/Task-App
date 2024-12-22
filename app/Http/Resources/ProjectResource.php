@@ -10,7 +10,8 @@ class ProjectResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @param Request $request
+     * @return array
      */
     public function toArray($request): array
     {
@@ -21,9 +22,9 @@ class ProjectResource extends JsonResource
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
             'slug' => $this->slug,
+            'task_progress' => $this->whenLoaded('task_progress'),
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];
     }
-
 }
