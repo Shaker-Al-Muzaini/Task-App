@@ -48,10 +48,12 @@ class ProjectController extends Controller
         ]);
 
         try {
-            $project = $this->projectService->createProject($validatedData);
+            // استخدام `projectService` لإنشاء المشروع مع TaskProgress
+            $project = $this->projectService->createProjectWithTaskProgress($validatedData);
+
             return response()->json([
                 'message' => 'تم إنشاء المشروع بنجاح!',
-                'data' => new ProjectResource($project),
+                'data' => $project,  // سيتم إرسال البيانات البسيطة فقط
             ], 201);
         } catch (\Exception $e) {
             return response()->json([

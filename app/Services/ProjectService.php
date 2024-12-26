@@ -31,33 +31,48 @@ class ProjectService
      * @return Project
      * @throws \Exception
      */
-    public function createProject(array $data): Project
+
+    public function createProjectWithTaskProgress(array $data): object
     {
         DB::beginTransaction();
 
         try {
-            $project = Project::create([
+            // إدخال البيانات باستخدام DB::table لتقليل استهلاك الذاكرة
+            $projectData = [
                 'name' => $data['name'],
                 'status' => Project::NOT_STARTED,
                 'startDate' => $data['startDate'],
                 'endDate' => $data['endDate'],
                 'slug' => Project::createSlug($data['name']),
-            ]);
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
 
-            TaskProgress::create([
-                'projectId' => $project->id,
+            $projectId = DB::table('projects')->insertGetId($projectData);
+
+            // إضافة بيانات task_progress باستخدام DB::table لتقليل استهلاك الذاكرة
+            DB::table('task_progress')->insert([
+                'projectId' => $projectId,
                 'pinned_on_dashboard' => TaskProgress::NOT_PINNED_ON_DASHBOARD,
                 'progress' => TaskProgress::INITAL_PROJECT_PERCENT,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             DB::commit();
 
-            return $project;
+            // استرجاع المشروع مع إعطاء التفاصيل الأساسية فقط
+            return (object)[
+                'id' => $projectId,
+                'name' => $data['name'],
+                'slug' => Project::createSlug($data['name']),
+            ];
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
+
 
     /**
      * Update an existing project.
