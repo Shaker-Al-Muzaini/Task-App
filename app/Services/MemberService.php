@@ -11,10 +11,10 @@ class MemberService
 
     public function getMember($request)
     {
-        return Member::with('task_progress')
-            ->when($request->filled('query'), function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->get('query') . '%');
-            })
+        return Member::when($request->filled('query'), function ($query) use ($request) {
+            $query->where('name', 'like', '%' . $request->get('query') . '%');
+        })
+
             ->orderByDesc('id')
             ->paginate(10);
     }

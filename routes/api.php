@@ -19,6 +19,7 @@ Route::post('/projects/pinned', [ProjectController::class, 'pinnedProject']);
 
 
 //Members
+Route::Get('/members', [MemberController::class,'index']);
 Route::post('/members', [MemberController::class,'store']);
 Route::put('/members/{id}', [MemberController::class, 'update']);
 
