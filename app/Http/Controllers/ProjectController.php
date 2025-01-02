@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use App\Models\TaskProgress;
 use App\Services\ProjectService;
 use Illuminate\Http\Request;
@@ -23,6 +24,13 @@ class ProjectController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+    public function getProjects (Request $request,$slug)
+    {
+        $project=Project::with(['tasks.task_members.members'])
+            -> where('projects.slug',$slug)->first();
+        return response(['data'=>$project]);
+
+    }
     public function index(Request $request): JsonResponse
     {
         $projects = $this->projectService->getProjects($request);
@@ -103,6 +111,14 @@ class ProjectController extends Controller
         // إرجاع رسالة نجاح
         return response()->json(['message' => 'تم تثبيت المشروع على لوحة التحكم بنجاح!']);
     }
+
+    public function countProject()
+    {
+        $count = Project::count();
+        return response()->json(['count'=>$count]);
+
+    }
+
 
 
 
